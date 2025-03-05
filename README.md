@@ -41,60 +41,57 @@ The project is designed to help users understand the inner workings of low-level
    ```
 
 2. **Build the project**:
-   Use the provided `Makefile` to compile the assembler, linker, and emulator:
+   Use the provided `run.sh` to compile the assembler, linker, and emulator:
    ```bash
-   make
+   ./run.sh
    ```
 
 3. **Run the tools**:
    - To assemble an assembly file:
      ```bash
-     ./assembler <input_file.asm> <output_file.o>
+     ./tests/start.sh
      ```
-   - To link multiple object files:
-     ```bash
-     ./linker <file1.o> <file2.o> ... <output_executable>
-     ```
-   - To emulate the executable:
-     ```bash
-     ./emulator <executable>
-     ```
-
+      (There are examples of using assembler, linker and emulator in start.sh)
 ---
 
 ## Project Structure
 
-- **`assembler/`**: Contains the source code for the assembler.
-- **`linker/`**: Contains the source code for the linker.
-- **`emulator/`**: Contains the source code for the emulator.
+- **`src/`**: Contains the source code for the assembler, the linker, the emulator and all secondary files.
+- **`inc/`**: Contains the header files for the assembler, the linker, the emulator and all secondary files.
+- **`misc/`**: Contains the source code for the flex lexer and bison parser.
 - **`tests/`**: Includes sample assembly files and test cases to validate the functionality of the assembler, linker, and emulator.
-- **`Makefile`**: Automates the build process for the project.
+- **`run.sh`**: Automates the build process for the project.
 
 ---
 
 ## Example Workflow
 
-1. Write an assembly program (e.g., `example.asm`):
+1. Write an assembly program (e.g., `example.s`):
    ```asm
-   MOV AX, 5
-   MOV BX, 10
-   ADD AX, BX
-   HLT
+   .section math
+   mathAdd:
+    push %r2
+    ld [%sp + 0x08], %r1
+    ld [%sp + 0x0C], %r2
+    add %r2, %r1 # r1 used for the result
+    pop %r2
+    ret
+   .end
    ```
 
 2. Assemble the program:
    ```bash
-   ./assembler example.asm example.o
+   ./asembler -o math.o ./tests/math.s
    ```
 
 3. Link the object file (if multiple files are used):
    ```bash
-   ./linker example.o output_executable
+   ./linker -hex -place=my_code@0x40000000 -place=math@0xf0000000 -o program.hex handler.o math.o main.o isr_terminal.o isr_timer.o isr_software.o
    ```
 
 4. Emulate the executable:
    ```bash
-   ./emulator output_executable
+   ./emulator program.hex
    ```
 
 5. Observe the output and debug if necessary.
@@ -124,7 +121,7 @@ The emulator provides the following debugging features:
 - **Memory inspection**: View the contents of memory locations.
 - **Breakpoints**: Pause execution at specific instructions.
 
-To use debugging features, run the emulator with the \`-d\` flag:
+To use debugging features, run the emulator with the `-d` flag:
 ```bash
 ./emulator -d output_executable
 ```
